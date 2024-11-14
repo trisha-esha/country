@@ -3,13 +3,12 @@ import './App.css';
 
 function App() {
   const api_url = 'https://restcountries.com/v3.1/all';
-  const [items, setItems] = useState([]); // This will hold the list of countries
-  const [searchTerm, setSearchTerm] = useState(''); // This will hold the user's search input
-  const [countryDetails, setCountryDetails] = useState(null); // This will hold the details of the searched country
-  const [error, setError] = useState(''); // State to hold error messages
+  const [items, setItems] = useState([]); 
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [countryDetails, setCountryDetails] = useState(null); 
+  const [error, setError] = useState(''); 
   const inputRef = useRef();
 
-  // Fetch all countries on component mount
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -18,52 +17,48 @@ function App() {
           throw new Error('Network response was not ok');
         }
         const listItems = await response.json();
-        setItems(listItems); // Set the list of countries
+        setItems(listItems);
       } catch (err) {
         console.log(err.stack);
       }
     };
 
     fetchItems();
-  }, []); // This useEffect runs only once when the component mounts
+  }, []); 
 
-  // Handle search when user clicks the search button or presses Enter
   const handleSearch = async () => {
     if (!searchTerm) {
-      setCountryDetails(null); // Clear details if search term is empty
-      return; // Do nothing if the search term is empty
+      setCountryDetails(null); 
+      return; 
     }
 
-    try {
-      const response = await fetch(`https://restcountries.com/v3.1/name/${searchTerm}`);
-      if (!response.ok) {
-        throw new Error('Country not found');
-      }
-      const data = await response.json();
-      setCountryDetails(data[0]); // Set the details of the found country
-      setError(''); // Clear any previous error
-    } catch (err) {
-      console.log(err.stack);
-      setCountryDetails(null); // Clear previous country details if an error occurs
-      setError('Country not found. Please try again.'); // Set error message
+    
+    const foundCountry = items.find(country =>
+      country.name.common.toLowerCase() === searchTerm.toLowerCase()
+    );
+
+    if (foundCountry) {
+      setCountryDetails(foundCountry); 
+      setError(''); 
+    } else {
+      setCountryDetails(null); 
+      setError('Country not found. Please try again.'); 
     }
 
     inputRef.current.focus();
   };
 
-  // Handle key press for Enter key
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
-      handleSearch(); // Trigger search on Enter key press
+      handleSearch(); 
     }
   };
 
-  // Use useMemo to filter countries
   const filteredCountries = useMemo(() => {
     return items.filter(country =>
       country.name.common.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [items, searchTerm]); // Recalculate when items or searchTerm changes
+  }, [items, searchTerm]); 
 
   return (
     <div className="App">
@@ -72,15 +67,15 @@ function App() {
         type="text"
         placeholder="Enter country name"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)} // Update search term as user types
-        onKeyPress={handleKeyPress} // Handle Enter key press
-        ref={inputRef}
+        onChange={(e) => setSearchTerm(e.target.value)} 
+        onKeyPress={handleKeyPress}
+         ref={inputRef}
       />
       <button onClick={handleSearch}>Search</button>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message if exists */}
+      {error && <p style={{ color: 'red' }}>{error}</p>} 
 
-      {countryDetails && ( // Display country details if they exist
+      {countryDetails && ( 
         <div>
           <h2>Country Details</h2>
           <p><strong>Name:</strong> {countryDetails.name.common}</p>
@@ -93,8 +88,8 @@ function App() {
         </div>
       )}
 
-      {/* Render the filtered countries list only if no country details are displayed */}
-      {!countryDetails && (
+      
+      {searchTerm && !countryDetails && (
         <div>
           <h2>Filtered Countries</h2>
           <ul>
