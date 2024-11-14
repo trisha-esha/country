@@ -1,24 +1,23 @@
-import { useEffect, useRef, useReducer, useMemo } from 'react';
-import './App.css';
-
+import { useEffect, useRef, useReducer, useMemo } from "react";
+import "./App.css";
+import useToggle from "./useToggle";
 
 const initialState = {
   items: [],
-  searchTerm: '',
+  searchTerm: "",
   countryDetails: null,
-  error: ''
+  error: "",
 };
-
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'SET_ITEMS':
+    case "SET_ITEMS":
       return { ...state, items: action.payload };
-    case 'SET_SEARCH_TERM':
+    case "SET_SEARCH_TERM":
       return { ...state, searchTerm: action.payload };
-    case 'SET_COUNTRY_DETAILS':
+    case "SET_COUNTRY_DETAILS":
       return { ...state, countryDetails: action.payload };
-    case 'SET_ERROR':
+    case "SET_ERROR":
       return { ...state, error: action.payload };
     default:
       return state;
@@ -26,59 +25,65 @@ function reducer(state, action) {
 }
 
 function App() {
-  const api_url = 'https://restcountries.com/v3.1/all';
-  const [state, dispatch] = useReducer(reducer, initialState); 
+  const api_url = "https://restcountries.com/v3.1/all";
+  const [state, dispatch] = useReducer(reducer, initialState);
   const inputRef = useRef();
+  const [isDetailsVisible, toggleDetails] = useToggle(false);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await fetch(api_url);
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         const listItems = await response.json();
-        dispatch({ type: 'SET_ITEMS', payload: listItems }); 
+        dispatch({ type: "SET_ITEMS", payload: listItems });
       } catch (err) {
         console.log(err.stack);
       }
     };
 
     fetchItems();
-  }, []); 
+  }, []);
 
   const handleSearch = async () => {
     if (!state.searchTerm) {
-      dispatch({ type: 'SET_COUNTRY_DETAILS', payload: null }); 
-      return; 
+      dispatch({ type: "SET_COUNTRY_DETAILS", payload: null });
+      return;
     }
 
-    const foundCountry = state.items.find(country =>
-      country.name.common.toLowerCase() === state.searchTerm.toLowerCase()
+    const foundCountry = state.items.find(
+      (country) =>
+        country.name.common.toLowerCase() === state.searchTerm.toLowerCase()
     );
 
     if (foundCountry) {
-      dispatch({ type: 'SET_COUNTRY_DETAILS', payload: foundCountry }); 
-      dispatch({ type: 'SET_ERROR', payload: '' }); 
+      dispatch({ type: "SET_COUNTRY_DETAILS", payload: foundCountry });
+      dispatch({ type: "SET_ERROR", payload: "" });
+      toggleDetails();
     } else {
-      dispatch({ type: 'SET_COUNTRY_DETAILS', payload: null }); 
-      dispatch({ type: 'SET_ERROR', payload: 'Country not found. Please try again.' }); 
+      dispatch({ type: "SET_COUNTRY_DETAILS", payload: null });
+      dispatch({
+        type: "SET_ERROR",
+        payload: "Country not found. Please try again.",
+      });
     }
 
     inputRef.current.focus();
   };
 
   const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
-      handleSearch(); 
+    if (event.key === "Enter") {
+      handleSearch();
     }
   };
 
   const filteredCountries = useMemo(() => {
-    return state.items.filter(country =>
+    return state.items.filter((country) =>
       country.name.common.toLowerCase().includes(state.searchTerm.toLowerCase())
     );
-  }, [state.items, state.searchTerm]); 
+  }, [state.items, state.searchTerm]);
 
   return (
     <div className="App">
@@ -87,23 +92,52 @@ function App() {
         type="text"
         placeholder="Enter country name"
         value={state.searchTerm}
-        onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })} 
+        onChange={(e) =>
+          dispatch({ type: "SET_SEARCH_TERM", payload: e.target.value })
+        }
         ref={inputRef}
+        onKeyPress={handleKeyPress} // Add key press event
       />
       <button onClick={handleSearch}>Search</button>
 
-      {state.error && <p style={{ color: 'red' }}>{state.error}</p>} 
+      {state.error && <p style={{ color: "red" }}>{state.error}</p>}
 
-      {state.countryDetails && ( 
+      {state.countryDetails && (
         <div>
           <h2>Country Details</h2>
-          <p><strong>Name:</strong> {state.countryDetails.name.common}</p>
-          <p><strong>Capital:</strong> {state.countryDetails.capital ? state.countryDetails.capital[0] : 'N/A'}</p>
-          <p><strong>Population:</strong> {state.countryDetails.population}</p>
-          <p><strong>Area:</strong> {state.countryDetails.area} km²</p>
-          <p><strong>Region:</strong> {state.countryDetails.region}</p>
-          <p><strong>Subregion:</strong> {state.countryDetails.subregion}</p>
-          <img src={state.countryDetails.flags.png} alt={`Flag of ${state.countryDetails.name.common}`} width="150" />
+          <button onClick={toggleDetails}>
+            {isDetailsVisible ? "Hide" : "Show"} Details
+          </button>
+          {isDetailsVisible && (
+            <div>
+              <p>
+                <strong>Name:</strong> {state.countryDetails.name.common}
+              </p>
+              <p>
+                <strong>Capital :</strong>{" "}
+                {state.countryDetails.capital
+                  ? state.countryDetails.capital[0]
+                  : "N/A"}
+              </p>
+              <p>
+                <strong>Population:</strong> {state.countryDetails.population}
+              </p>
+              <p>
+                <strong>Area:</strong> {state.countryDetails.area} km²
+              </p>
+              <p>
+                <strong>Region:</strong> {state.countryDetails.region}
+              </p>
+              <p>
+                <strong>Subregion:</strong> {state.countryDetails.subregion}
+              </p>
+              <img
+                src={state.countryDetails.flags.png}
+                alt={`Flag of ${state.countryDetails.name.common}`}
+                width="150"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -111,7 +145,7 @@ function App() {
         <div>
           <h2>Filtered Countries</h2>
           <ul>
-            {filteredCountries.map(country => (
+            {filteredCountries.map((country) => (
               <li key={country.cca3}>{country.name.common}</li>
             ))}
           </ul>
