@@ -1,0 +1,68 @@
+User Interaction Flow
+Application Launch:
+
+When the user opens the application, the App component mounts, and the useEffect hook is triggered.
+The fetchItems function is called to retrieve country data from the API (https://restcountries.com/v3.1/all).
+Fetching Data:
+
+The app makes a network request to the API to fetch the list of all countries.
+If the request is successful, the response is converted to JSON format.
+The SET_ITEMS action is dispatched with the fetched data, updating the items in the state.
+If there’s an error (like a network issue), it logs the error to the console but does not affect the user interface.
+Initial State:
+
+At this point, the user sees the application with an empty input field and no country details displayed. The items state is populated with country data, but it is not yet visible to the user until they perform a search.
+User Types in the Input Field:
+
+The user starts typing a country name into the input field.
+The onChange event is triggered, dispatching the SET_SEARCH_TERM action with the current input value.
+The searchTerm in the state is updated to reflect what the user is typing.
+User Presses "Enter" or Clicks "Search":
+
+When the user finishes typing and either presses the "Enter" key or clicks the "Search" button, the handleSearch function is called.
+Inside handleSearch, the following occurs:
+If the searchTerm is empty, it clears any previously displayed country details.
+The app searches through the items array for a country that matches the searchTerm (case-insensitive comparison).
+If a matching country is found:
+The countryDetails in the state is updated with the details of the found country using the SET_COUNTRY_DETAILS action.
+Any existing error message is cleared.
+If no matching country is found:
+The countryDetails is set to null, and an error message ("Country not found. Please try again.") is dispatched using SET_ERROR.
+Displaying Results:
+
+After the search, the app re-renders based on the updated state.
+If a country was found, the details section is displayed:
+The user sees the name, capital, population, area, region, subregion, and flag of the country.
+If no country was found, the error message is displayed in red below the input field.
+Filtered Countries List (Optional):
+
+If the user types a search term but does not select a specific country (i.e., they haven't found a match), the app will display a list of filtered countries.
+The filteredCountries array is computed using useMemo, which filters the items based on the searchTerm.
+This list is displayed below the input field, showing all countries that include the search term in their names.
+Focus Management:
+
+After each search, the input field is focused again, allowing the user to easily enter another search term without needing to click back into the input field.
+Summary of User Experience
+The user opens the app and sees a search interface.
+They type a country name, triggering state updates that reflect their input.
+Upon searching, the app checks the country data and displays either the details of the found country or an error message if not found.
+The user can quickly iterate on searches due to the focus management, enhancing usability.
+Example Scenario
+Let's consider a specific example to illustrate the flow:
+
+The user opens the app and sees "Country Search" with an input field and a search button.
+They type "Canada" into the input field.
+As they type, the searchTerm updates in the state.
+They press "Enter".
+The app searches the items for "Canada":
+It finds a match and updates countryDetails with Canada's information.
+The app re-renders, displaying:
+Name: Canada
+Capital: Ottawa
+Population: 37 million
+Area: 9.98 million km²
+Region: Americas
+Subregion: North America
+Flag: (shows the flag image)
+The user can now see all relevant details about Canada.
+If they typed "XYZ" instead: 1
